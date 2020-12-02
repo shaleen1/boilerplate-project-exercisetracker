@@ -1,35 +1,64 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Exercise Tracker | Free Code Camp</title>
+    <link
+      rel="shortcut icon"
+      href="data:image/png;base64,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"
+      type="image/x-icon"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
 
-   <head>
-      <title>Exercise Tracker | Free Code Camp</title>
-      <link rel="shortcut icon" href="https://cdn.freecodecamp.org/universal/favicons/favicon-32x32.png" type="image/x-icon"/>
-      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
-      <link href="style.css" rel="stylesheet" type="text/css">
-   </head>
-
-   <body>
-      <div class="container">
-         <h1>Exercise tracker</h1>
-          <form action="/api/exercise/new-user" method="post">
-            <h3>Create a New User</h3>
-            <p><code>POST /api/exercise/new-user</code></p>
-            <input id="uname" type="text" name="username" placeholder="username">
-            <input type="submit" value="Submit">
-          </form>
-          <form action="/api/exercise/add" method="post">
-            <h3>Add exercises</h3>
-            <p><code>POST /api/exercise/add</code></p>
-            <input id="uid" type="text" name="userId" placeholder="userId*">
-            <input id="desc" type="text" name="description" placeholder="description*">
-            <input id="dur" type="text" name="duration" placeholder="duration* (mins.)">
-            <input id="dat" type="text" name="date" placeholder="date (yyyy-mm-dd)">
-            <input type="submit" value="Submit">
-          </form>
-          <p><strong>GET users's exercise log: </strong><code>GET /api/exercise/log?{userId}[&amp;from][&amp;to][&amp;limit]</code></p>
-          <p><strong>{ }</strong> = required, <strong>[ ]</strong> = optional</p>
-          <p><strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> = number</p>
-      </div>
-   </body>
-
+  <body>
+    <div class="container">
+      <h1>Exercise tracker</h1>
+      <form action="/api/exercise/new-user" method="post">
+        <h3>Create a New User</h3>
+        <p><code>POST /api/exercise/new-user</code></p>
+        <input id="uname" type="text" name="username" placeholder="username" />
+        <input type="submit" value="Submit" />
+      </form>
+      <form action="/api/exercise/add" method="post">
+        <h3>Add exercises</h3>
+        <p><code>POST /api/exercise/add</code></p>
+        <input id="uid" type="text" name="userId" placeholder="userId*" />
+        <input
+          id="desc"
+          type="text"
+          name="description"
+          placeholder="description*"
+        />
+        <input
+          id="dur"
+          type="text"
+          name="duration"
+          placeholder="duration* (mins.)"
+        />
+        <input
+          id="dat"
+          type="text"
+          name="date"
+          placeholder="date (yyyy-mm-dd)"
+        />
+        <input type="submit" value="Submit" />
+      </form>
+      <p>
+        <strong>GET users's exercise log: </strong
+        ><code
+          >GET /api/exercise/log?{userId}[&amp;from][&amp;to][&amp;limit]</code
+        >
+      </p>
+      <p><strong>{ }</strong> = required, <strong>[ ]</strong> = optional</p>
+      <p>
+        <strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> =
+        number
+      </p>
+    </div>
+  </body>
 </html>
