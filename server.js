@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 app.use(bodyParser.urlencoded({ extended: false }));
 
 var userSchema = new mongoose.Schema({
-  username: String,
+  username: String
 });
 var User = mongoose.model("User", userSchema);
 
@@ -41,6 +41,7 @@ var UserLog = mongoose.model("UserLog", userLogSchema);
 app.post(
   "/api/exercise/new-user",
   async function(req, res, next) {
+    console.log("POST NEW USER", "\n--------------------");
     var username = req.body.username;
     console.log("FUNCTION ONE. USERNAME: ", username);
     var matches = await User.find({ username: username });
@@ -64,16 +65,19 @@ app.post(
       }
     });
     console.log("USER SAVED");
+    console.log("DATA INIT: ", data);
     res.json(data);
   }
 );
 
 app.get("/api/exercise/users", async function(req, res) {
+  console.log("GET ALL USERS", "\n--------------------");
   var allUsers = await User.find({});
   res.send(allUsers);
 });
 
 app.post("/api/exercise/add", async function(req, res, next) {
+  console.log("POST NEW EXERCISE", "\n--------------------");
   var userId = req.body.userId;
   var description = req.body.description;
   var duration = req.body.duration;
@@ -104,9 +108,9 @@ app.post("/api/exercise/add", async function(req, res, next) {
     description: description,
     duration: duration,
     date: date
-  }
+  };
   var data = new UserLog(data1);
-  console.log(data);
+  console.log("DATA (IGNORE ID): ", data);
   data.save(function(err) {
     if (err) {
       console.log("ERROR SAVING EXERCISE");
@@ -115,11 +119,16 @@ app.post("/api/exercise/add", async function(req, res, next) {
     }
   });
   console.log("USER EXERCISE SAVED");
-  data1['_id'] = match['_id'];
-  res.json(data1);
+  console.log("DATA1: ", data1);
+  let sendObj = { ...data1 };
+  console.log("SEND OBJ: ", sendObj);
+  sendObj._id = userId;
+  console.log("SEND OBJ FINAL: ", sendObj);
+  res.json(sendObj);
 });
 
 app.get("/api/exercise/log", async function(req, res, next) {
+  console.log("GET USER EXERCISE LOG", "\n--------------------");
   var userId = req.query.userId;
 
   var match = await User.find({ _id: userId });
@@ -130,33 +139,118 @@ app.get("/api/exercise/log", async function(req, res, next) {
   } else {
     console.log("MATCH FOUND");
   }
-  var username = match[0]['username'];
+  var username = match[0]["username"];
   var logMatch = await UserLog.find({ username: username });
   var data = {};
-  data.id_ = userId;
+  data._id = userId;
   data.username = username;
   if (logMatch == undefined || logMatch.length == 0) {
     console.log("USER HAS NO EXERCISES");
     data.count = 0;
-    data.log = [];    
+    data.log = [];
     res.json(data);
     return;
   }
-  data.count = logMatch.length;
-  var log= logMatch.slice();
-  for (let i=0; i<log.length; i++){
-    let logI = {};
-    logI['description']=logMatch[i].description;
-    logI['duration']=logMatch[i].duration;
-    logI['date']=logMatch[i].date;
-    log[i] = logI;
+
+  // ADD LIMIT FUNCTIONALITY
+  var limit = req.query.limit;
+  if (limit == undefined || limit > logMatch.length || limit < 0) {
+    console.log("NO VALID LIMIT PROVIDED");
+    limit = logMatch.length;
   }
-  data.log = log;
-  res.json(data);
+  if (req.query.from == undefined && req.query.to == undefined) {
+    console.log("NOT GIVEN FROM OR TO");
+    var log = [];
+    var count = 0;
+
+    for (let i = 0; i < logMatch.length; i++) {
+      if (count >= limit) {
+        break;
+      }
+      let logI = {};
+    
+      logI["description"] = logMatch[i].description;
+      logI["duration"] = logMatch[i].duration;
+      logI["date"] = logMatch[i].date;
+      log[i] = logI;
+      count++;
+    }
+    data.count = count;
+    data.log = log;
+    res.json(data);
+    return;
+  } else if (req.query.from == undefined) {
+    console.log("GIVEN TO BUT NOT FROM");
+    var log = [];
+    var count = 0;
+    var to = new Date(req.query.to); //latest possible date
+    for (let i = 0; i < logMatch.length; i++) {
+      if (count >= limit) {
+        break;
+      }
+      let logI = {};
+      let thisDate = new Date(logMatch[i].date); 
+      if (thisDate > to) {
+        continue;
+      }
+      logI["description"] = logMatch[i].description;
+      logI["duration"] = logMatch[i].duration;
+      logI["date"] = logMatch[i].date;
+      log[i] = logI;
+      count++;
+    }
+    data.count = count;
+    data.log = log;
+    res.json(data);
+  } else if (req.query.to == undefined) {
+    console.log("GIVEN FROM BUT NOT TO");
+    var log = [];
+    var count = 0;
+    var from = new Date(req.query.from); //earliest possible date
+    for (let i = 0; i < logMatch.length; i++) {
+      if (count >= limit) {
+        break;
+      }
+      let logI = {};
+      let thisDate = new Date(logMatch[i].date); 
+      if (thisDate < from) {
+        continue;
+      }
+      logI["description"] = logMatch[i].description;
+      logI["duration"] = logMatch[i].duration;
+      logI["date"] = logMatch[i].date;
+      log[i] = logI;
+      count++;
+    }
+    data.count = count;
+    data.log = log;
+    res.json(data);
+  } else {
+    console.log("GIVEN BOTH FROM AND TO");
+    var log = [];
+    var count = 0;
+    var from = new Date(req.query.from);
+    var to = new Date(req.query.to);
+    for (let i = 0; i < logMatch.length; i++) {
+      if (count >= limit) {
+        break;
+      }
+      let logI = {};
+      let thisDate = new Date(logMatch[i].date); 
+      if (thisDate < from || thisDate > to) {
+        continue;
+      }
+      logI["description"] = logMatch[i].description;
+      logI["duration"] = logMatch[i].duration;
+      logI["date"] = logMatch[i].date;
+      log[i] = logI;
+      count++;
+    }
+    data.count = count;
+    data.log = log;
+    res.json(data);
+  }
 });
-
-//ISSUE TO RESOLVE: WHEN AN EXERCISE IS CREATED IT OVERRIDES EXISTING EXERCISE LOGS DUE TO THE _ID SO THERE IS ALWAYS 0 OR 1 EXERCISE FOR A USER
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
