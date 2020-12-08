@@ -123,6 +123,9 @@ app.post("/api/exercise/add", async function(req, res, next) {
   let sendObj = { ...data1 };
   console.log("SEND OBJ: ", sendObj);
   sendObj._id = userId;
+  if (match['_v'] != undefined){
+    sendObj._v = match['_v'];
+  }
   console.log("SEND OBJ FINAL: ", sendObj);
   res.json(sendObj);
 });
